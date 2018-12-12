@@ -443,10 +443,12 @@ class Editor {
   }
 
   _reparseSections(sections=[]) {
+    console.log('reparseSections');
     let currentRange;
     sections.forEach(section => {
       this._parser.reparseSection(section, this._renderTree);
     });
+
     this._removeDetachedSections();
 
     if (this._renderTree.isDirty) {
@@ -460,9 +462,13 @@ class Editor {
     this.run(() => {
       this._editHistory._pendingSnapshot.range = range;
     });
+
+    console.log('about to rerender');
     this.rerender();
+
     if (currentRange) {
-      this.selectRange(currentRange);
+      console.log('about to move cursor forward')
+      this.selectRange(currentRange.move(DIRECTION.FORWARD));
     }
 
     this.runCallbacks(CALLBACK_QUEUES.DID_REPARSE);

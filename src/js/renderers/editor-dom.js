@@ -215,7 +215,13 @@ function attachRenderNodeElementToDOM(renderNode, originalElement=null) {
 
   if (hasRendered) {
     let parentElement = renderNode.parent.element;
-    parentElement.replaceChild(element, originalElement);
+
+    if (!window._skipReplace) {
+      parentElement.replaceChild(element, originalElement);
+    } else {
+      originalElement.innerText = element.innerText;
+      //parentElement.removeChild(element);
+    }
   } else {
     let parentElement, nextSiblingElement;
     if (renderNode.prev) {

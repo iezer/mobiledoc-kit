@@ -12,7 +12,14 @@ let bootstrapEditor = () => {
   let el = $('#editor')[0];
   let editor = new Mobiledoc.Editor({
     placeholder: 'Type here',
-    autofocus: true
+    autofocus: true,
+    mobiledoc: {
+      version: '0.3.1',
+      markups: [],
+      atoms: [],
+      cards: [],
+      sections: [[1, "p", [[0, [], 0, ""]]]]
+    }
   });
   editor.render(el);
   activateButtons('#editor-wrapper', editor);
