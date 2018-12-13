@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "experimentalDecorators": true
+  },
+  "exclude": [
+    "node_modules",
+    "bower_components",
+    "tmp",
+    "vendor",
+    ".git",
+    "dist",
+    "website"
+  ],
+  "typeAcquisition": {
+    "enable": true,
+    "include": [
+      "ember",
+      "ember-data",
+      "qunit",
+      "ember-qunit"
+    ]
+  }
+}

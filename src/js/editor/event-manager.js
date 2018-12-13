@@ -11,7 +11,7 @@ import SelectionManager from 'mobiledoc-kit/editor/selection-manager';
 import Browser from 'mobiledoc-kit/utils/browser';
 
 const ELEMENT_EVENT_TYPES = [
-  'keydown', 'keyup', 'cut', 'copy', 'paste', 'keypress', 'drop'
+  'keydown', 'keyup', 'cut', 'copy', 'paste', 'drop', 'keypress', 'beforeinput'
 ];
 
 export default class EventManager {
@@ -136,10 +136,15 @@ export default class EventManager {
   }
 
   keypress(event) {
+    //event.preventDefault();
+
+    return;
     let { editor, _textInputHandler } = this;
     if (!editor.hasCursor()) { return; }
 
     let key = Key.fromEvent(event);
+    console.log(`keypress ${key.key} key code ${key.keyCode} isIME ${key.isIME()}`);
+
     if (!key.isPrintable()) {
       return;
     } else {
@@ -149,17 +154,39 @@ export default class EventManager {
     _textInputHandler.handle(key.toString());
   }
 
+  beforeinput(event) {
+    let { editor, _textInputHandler } = this;
+    if (!editor.hasCursor()) { return; }
+
+    // let key = new Key(event);
+    // key.key = event.data;
+    console.log(`beforeinput ${event.data}`);
+
+    // if (!key.isPrintable()) {
+    //   return;
+    // } else {
+    //   event.preventDefault();
+    // }
+
+    event.preventDefault();
+
+    _textInputHandler.handle(event.data);
+  }
+
   keydown(event) {
     let { editor } = this;
     if (!editor.hasCursor()) { return; }
     if (!editor.isEditable) { return; }
+    this.editor._mutationHandler.stopObserving();
 
     let key = Key.fromEvent(event);
+    console.log(`keydown ${key.key} key code ${key.keyCode} isIME ${key.isIME()}`);
     this._updateModifiersFromKey(key, {isDown:true});
 
     if (editor.handleKeyCommand(event)) { return; }
 
     if (editor.post.isBlank) {
+      console.log('isBlank');
       editor._insertEmptyMarkupSectionAtCursor();
     }
 
@@ -169,6 +196,7 @@ export default class EventManager {
       case key.isIME(): {
         // For IME（eg. typing in Japanese or Korean), we want to ignore all keydowns,
         // especially ENTER, DELETE, and TAB, which all have special behaviors in the IME popover.
+        event.preventDefault();
         break;
       }
       // FIXME This should be restricted to only card/atom boundaries
@@ -212,7 +240,11 @@ export default class EventManager {
     let { editor } = this;
     if (!editor.hasCursor()) { return; }
     let key = Key.fromEvent(event);
+    console.log(`keyup ${key.key} key code ${key.keyCode} isIME ${key.isIME()}`);
+
     this._updateModifiersFromKey(key, {isDown:false});
+    this.editor._mutationHandler.startObserving();
+
   }
 
   cut(event) {

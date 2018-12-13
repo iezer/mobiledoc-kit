@@ -30,12 +30,21 @@ export default class MutationHandler {
   }
 
   suspendObservation(callback) {
-    this.stopObserving();
+    const wasStarted = this._isObserving;
+    if (wasStarted) {
+      this.stopObserving();
+    }
+
     callback();
-    this.startObserving();
+
+    if (wasStarted) {
+      this.startObserving();
+    }
   }
 
   stopObserving() {
+    console.log('stopObserving');
+
     if (this._isObserving) {
       this._isObserving = false;
       this._observer.disconnect();
@@ -43,6 +52,7 @@ export default class MutationHandler {
   }
 
   startObserving() {
+    console.log('startObserving');
     if (!this._isObserving) {
       let { editor } = this;
       assert('Cannot observe un-rendered editor', editor.hasRendered);
@@ -80,6 +90,8 @@ export default class MutationHandler {
    *   *  if no section, reparse all (and break)
    */
   _handleMutations(mutations) {
+
+    this.logger.log(`top of handleMutations`);
     let reparsePost = false;
     let sections = new Set();
 

@@ -219,7 +219,7 @@ class PostEditor {
 
   _coalesceMarkers(section) {
     if (section.isMarkerable) {
-      this._removeBlankMarkers(section);
+      //this._removeBlankMarkers(section);
       this._joinSimilarMarkers(section);
     }
   }

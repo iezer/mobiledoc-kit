@@ -21,6 +21,8 @@ let bootstrapEditor = () => {
       sections: [[1, "p", [[0, [], 0, ""]]]]
     }
   });
+  
+  editor.enableLogging(['mutation-handler']);
   editor.render(el);
   activateButtons('#editor-wrapper', editor);
   let displayMobiledoc = () => {

@@ -220,6 +220,7 @@ function attachRenderNodeElementToDOM(renderNode, originalElement=null) {
       parentElement.replaceChild(element, originalElement);
     } else {
       originalElement.innerText = element.innerText;
+      renderNode.element = originalElement;
       //parentElement.removeChild(element);
     }
   } else {
