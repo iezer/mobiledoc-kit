@@ -463,3 +463,7 @@ BlankPosition = class BlankPosition extends Position {
 };
 
 export default Position;
+
+export function createBlankPosition() {
+  return new BlankPosition();
+}

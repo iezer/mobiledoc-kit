@@ -1,6 +1,6 @@
-import Position from './position';
 import { DIRECTION } from '../key';
 import assert from 'mobiledoc-kit/utils/assert';
+import Position, { createBlankPosition } from "./position";
 
 /**
  * A logical range of a {@link Post}.
@@ -45,7 +45,7 @@ class Range {
   }
 
   static blankRange() {
-    return new Range(Position.blankPosition(), Position.blankPosition());
+    return new Range(createBlankPosition(), createBlankPosition());
   }
 
   /**

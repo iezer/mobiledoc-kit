@@ -164,19 +164,19 @@ if (!USE_ROLLUP) {
         "module-resolver",
         {
           extensions: ".js",
-          cwd: "packagejson"
-          // resolvePath(sourcePath, currentFile, opts) {
-          //   let path = resolveSourceToAbsolute(sourcePath, currentFile);
+          cwd: "packagejson",
+          resolvePath: function(sourcePath, currentFile, opts) {
+            let path = resolveSourceToAbsolute(sourcePath, currentFile);
 
-          //   const index = path.indexOf("mobiledoc-kit");
-          //   if (index !== -1) {
-          //     path = path.slice(index).replace("/index", "");
-          //   }
+            const index = path.indexOf("mobiledoc-kit");
+            if (index !== -1) {
+              path = path.slice(index).replace("/index", "");
+            }
 
-          //   console.log(`resolvePath ${sourcePath} ${currentFile} ${path}`);
+            console.log(`resolvePath ${sourcePath} ${currentFile} ${path}`);
 
-          //   return path;
-          // }
+            return path;
+          }
         }
       ]
     ]
