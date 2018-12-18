@@ -54,17 +54,17 @@ if (!USE_ROLLUP) {
   ]);
 } else {
   const Rollup = require("broccoli-rollup");
-  const babel = require("rollup-plugin-babel");
+  const rollupBabel = require("rollup-plugin-babel");
   const resolve = require("rollup-plugin-node-resolve");
   const commonjs = require("rollup-plugin-commonjs");
   const importAlias = require("rollup-plugin-import-alias");
 
   let jsTrees = [
     ["global", "iife", "Mobiledoc"]
-    // ["commonjs", "cjs", "Mobiledoc"],
-    //["amd", "amd", "mobiledoc-kit"],
-    //["es6", "es", "mobiledoc-kit"]
-    // ["umd", "umd", "mobiledoc-kit"]
+    //["commonjs", "cjs", "mobiledoc-kit"]
+    //["amd-rollup", "amd", "mobiledoc-kit"]
+    // ["es6", "es", "mobiledoc-kit"]
+    //["umd", "umd", "mobiledoc-kit"]
   ].map(function(configuration) {
     const outputDir = configuration[0];
     const outputFormat = configuration[1];
@@ -85,7 +85,7 @@ if (!USE_ROLLUP) {
           sourcemap: true
         },
         plugins: [
-          babel({
+          rollupBabel({
             exclude: "node_modules/**"
           }),
           resolve({
@@ -104,6 +104,59 @@ if (!USE_ROLLUP) {
       }
     });
   });
+
+  var babel = require("broccoli-babel-transpiler");
+
+  const commonJs = function() {
+    const tree = babel("src/js", {
+      moduleIds: true,
+      getModuleId(path) {
+        //console.log(`getModuleId ${path}`);
+        const index = path.indexOf("mobiledoc-kit");
+        if (path !== -1) {
+          return path.slice(index).replace("/index", "");
+        }
+      },
+      plugins: ["@babel/plugin-transform-modules-commonjs"]
+    });
+
+    return new Funnel(tree, {
+      destDir: "commonjs/mobiledoc-kit"
+    });
+  };
+
+  const amd = function() {
+    let tree = babel("src/js", {
+      moduleIds: true,
+      getModuleId(path) {
+        console.log(`getModuleId ${path}`);
+        const index = path.indexOf("mobiledoc-kit");
+        if (path !== -1) {
+          return path.slice(index).replace("/index", "");
+        }
+      },
+      plugins: ["@babel/plugin-transform-modules-amd"]
+    });
+
+    const vendoredModulesFiles = vendoredModules.map(
+      ({ name }) => `${name}/dist/amd/${name}.js`
+    );
+
+    const vendorTree = new Funnel("node_modules", {
+      include: vendoredModulesFiles
+    });
+
+    tree = mergeTrees([tree, vendorTree]);
+
+    return concatenate(tree, {
+      inputFiles: ["**/*.js"],
+      outputFile: "/amd/mobiledoc-kit.js",
+      header: "/** Copyright **/"
+    });
+  };
+
+  //jsTrees.push(commonJs());
+  jsTrees.push(amd());
 
   module.exports = mergeTrees(jsTrees.concat([cssFiles, testTree, demoTree()]));
 }
