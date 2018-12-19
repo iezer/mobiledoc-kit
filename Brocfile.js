@@ -1,7 +1,6 @@
 /* jshint node:true */
 
 var broccoli = require("broccoli");
-var concatenate = require("broccoli-concat");
 var Watcher = require("broccoli-sane-watcher");
 var Funnel = require("broccoli-funnel");
 var builder = require("broccoli-multi-builder");
@@ -26,29 +25,6 @@ testTree = new BroccoliLiveReload(testTree, { target: "index.html" });
 var testBuilder = new broccoli.Builder(testTree);
 
 const USE_ROLLUP = true;
-
-function resolveSourceToAbsolute(source, filename) {
-  var isRelativeImport = source.indexOf(".") !== -1;
-  if (!isRelativeImport) {
-    return source;
-  }
-
-  var path = require("path");
-  var sourceParts = source.split("/");
-  var fileParts = path.dirname(filename).split("/");
-
-  var sourcePart = sourceParts.shift();
-  while (sourcePart) {
-    if (sourcePart === "..") {
-      fileParts.pop();
-    } else if (sourcePart !== ".") {
-      fileParts.push(sourcePart);
-    }
-
-    sourcePart = sourceParts.shift();
-  }
-  return fileParts.join("/");
-}
 
 if (!USE_ROLLUP) {
   var packageName = require("./package.json").name;
@@ -76,130 +52,14 @@ if (!USE_ROLLUP) {
     demoTree()
   ]);
 } else {
-  const Rollup = require("broccoli-rollup");
-  const rollupBabel = require("rollup-plugin-babel");
-  const resolve = require("rollup-plugin-node-resolve");
-  const commonjs = require("rollup-plugin-commonjs");
-  const importAlias = require("rollup-plugin-import-alias");
+  const globalTree = require("./broccoli/global");
+  const commonJsTree = require("./broccoli/commonjs");
+  const amdTree = require("./broccoli/amd");
 
-  let jsTrees = [
-    //["global", "iife", "Mobiledoc"],
-    //["commonjs", "cjs", "mobiledoc-kit"]
-    //["amd-rollup", "amd", "mobiledoc-kit"],
-    //["es6", "es", "mobiledoc-kit"]
-    //["umd", "umd", "mobiledoc-kit"]
-  ].map(function(configuration) {
-    const outputDir = configuration[0];
-    const outputFormat = configuration[1];
-    const outputName = configuration[2];
+  const jsTrees = globalTree();
 
-    return new Rollup("src/js", {
-      inputFiles: ["**/*.js"],
-      annotation: "JS Transformation",
-      rollup: {
-        input: "index.js",
-        output: {
-          name: outputName,
-          file: outputDir + "/mobiledoc-kit.js",
-          format: outputFormat,
-          amd: {
-            id: "mobiledoc-kit"
-          },
-          sourcemap: true
-        },
-        plugins: [
-          rollupBabel({
-            exclude: "node_modules/**"
-          }),
-          resolve({
-            jsnext: true,
-            main: true
-          }),
-          commonjs(),
-          importAlias({
-            Paths: {
-              "mobiledoc-kit": "src/js"
-            },
-            Extensions: ["js"]
-          })
-        ],
-        external: ["mobiledoc-kit"]
-      }
-    });
-  });
-
-  var babel = require("broccoli-babel-transpiler");
-
-  const commonJs = function() {
-    const tree = babel("src/js", {
-      moduleRoot: "mobiledoc-kit",
-      // moduleIds: true,
-      // getModuleId(path) {
-      //   //console.log(`getModuleId ${path}`);
-      //   const index = path.indexOf("mobiledoc-kit");
-      //   if (path !== -1) {
-      //     return path.slice(index).replace("/index", "");
-      //   }
-      // },
-      plugins: ["@babel/plugin-transform-modules-commonjs", { noInterop: true }]
-    });
-
-    return new Funnel(tree, {
-      destDir: "commonjs/mobiledoc-kit"
-    });
-  };
-
-  let tree = babel("src/js", {
-    moduleIds: true,
-    getModuleId(path) {
-      //console.log(`getModuleId ${path}`);
-      const index = path.indexOf("mobiledoc-kit");
-      if (index !== -1) {
-        return path.slice(index).replace("/index", "");
-      }
-    },
-    plugins: [
-      ["babel-plugin-transform-es2015-modules-amd", { noInterop: true }],
-      [
-        "module-resolver",
-        {
-          extensions: ".js",
-          cwd: "packagejson",
-          resolvePath: function(sourcePath, currentFile, opts) {
-            let path = resolveSourceToAbsolute(sourcePath, currentFile);
-
-            const index = path.indexOf("mobiledoc-kit");
-            if (index !== -1) {
-              path = path.slice(index).replace("/index", "");
-            }
-
-            // console.log(`resolvePath ${sourcePath} ${currentFile} ${path}`);
-
-            return path;
-          }
-        }
-      ]
-    ]
-  });
-
-  const vendoredModulesFiles = vendoredModules.map(
-    ({ name }) => `${name}/dist/amd/${name}.js`
-  );
-
-  const vendorTree = new Funnel("node_modules", {
-    include: vendoredModulesFiles
-  });
-
-  tree = mergeTrees([tree, vendorTree]);
-
-  const amdTree = concatenate(tree, {
-    inputFiles: ["**/*.js"],
-    outputFile: "/amd/mobiledoc-kit.js",
-    header: "/** Copyright **/"
-  });
-
-  //jsTrees.push(commonJs());
-  jsTrees.push(amdTree);
+  jsTrees.push(commonJsTree());
+  jsTrees.push(amdTree(vendoredModules));
 
   module.exports = mergeTrees(jsTrees.concat([cssFiles, testTree, demoTree()]));
 }
