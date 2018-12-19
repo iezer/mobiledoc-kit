@@ -28,6 +28,9 @@ function resolveSourceToAbsolute(source, filename) {
 
 module.exports = function(vendoredModules) {
   let tree = babel("src/js", {
+    presets: [
+      ["@babel/preset-env", { targets: { browsers: ["last 2 versions"] } }]
+    ],
     moduleIds: true,
     getModuleId(path) {
       //console.log(`getModuleId ${path}`);

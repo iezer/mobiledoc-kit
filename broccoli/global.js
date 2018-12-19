@@ -32,7 +32,13 @@ module.exports = function() {
         },
         plugins: [
           rollupBabel({
-            exclude: "node_modules/**"
+            exclude: "node_modules/**",
+            presets: [
+              [
+                "@babel/preset-env",
+                { targets: { browsers: ["last 2 versions"] } }
+              ]
+            ]
           }),
           resolve({
             jsnext: true,
