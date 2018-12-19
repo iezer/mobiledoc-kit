@@ -141,7 +141,7 @@ if (!USE_ROLLUP) {
       //     return path.slice(index).replace("/index", "");
       //   }
       // },
-      plugins: ["@babel/plugin-transform-modules-commonjs"]
+      plugins: ["@babel/plugin-transform-modules-commonjs", { noInterop: true }]
     });
 
     return new Funnel(tree, {
@@ -152,14 +152,14 @@ if (!USE_ROLLUP) {
   let tree = babel("src/js", {
     moduleIds: true,
     getModuleId(path) {
-      console.log(`getModuleId ${path}`);
+      //console.log(`getModuleId ${path}`);
       const index = path.indexOf("mobiledoc-kit");
       if (index !== -1) {
         return path.slice(index).replace("/index", "");
       }
     },
     plugins: [
-      "babel-plugin-transform-es2015-modules-amd",
+      ["babel-plugin-transform-es2015-modules-amd", { noInterop: true }],
       [
         "module-resolver",
         {
@@ -173,7 +173,7 @@ if (!USE_ROLLUP) {
               path = path.slice(index).replace("/index", "");
             }
 
-            console.log(`resolvePath ${sourcePath} ${currentFile} ${path}`);
+            // console.log(`resolvePath ${sourcePath} ${currentFile} ${path}`);
 
             return path;
           }
